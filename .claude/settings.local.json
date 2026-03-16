@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(wc:*)",
+      "Read(//home/omar/.claude/skills/**)",
+      "Read(//home/omar/.claude/**)"
+    ]
+  }
+}
