@@ -43,7 +43,7 @@
         </div>
 
         <a
-          href="https://wa.me/595981000000"
+          href="https://wa.me/595985288964"
           class="btn btn--whatsapp btn--sm header__cta"
           target="_blank"
           rel="noopener"
@@ -73,7 +73,7 @@
       <a href="../index.html" class="mobile-menu__link">Inicio</a>
       <a href="catalog.html" class="mobile-menu__link">Catálogo</a>
       <a href="catalog.html?category=Destacados" class="mobile-menu__link">Destacados</a>
-      <a href="https://wa.me/595981000000" class="mobile-menu__link" target="_blank" rel="noopener">WhatsApp</a>
+      <a href="https://wa.me/595985288964" class="mobile-menu__link" target="_blank" rel="noopener">WhatsApp</a>
     </div>
   </div>
 
@@ -106,16 +106,8 @@
         />
       </div>
 
-      <!-- Filter pills -->
-      <div class="filter-bar" role="group" aria-label="Filtrar por categoría">
-        <button class="filter-pill filter-pill--active" data-category="Todos">Todos</button>
-        <button class="filter-pill" data-category="Living">Living</button>
-        <button class="filter-pill" data-category="Comedor">Comedor</button>
-        <button class="filter-pill" data-category="Dormitorio">Dormitorio</button>
-        <button class="filter-pill" data-category="Oficina">Oficina</button>
-        <button class="filter-pill" data-category="Decoración">Decoración</button>
-        <button class="filter-pill" data-category="Destacados">Destacados</button>
-      </div>
+      <!-- Filter pills — built dynamically from visible categories in app.js -->
+      <div class="filter-bar" role="group" aria-label="Filtrar por categoría"></div>
 
       <!-- Product grid -->
       <section class="catalog-section" aria-label="Productos">
@@ -162,11 +154,11 @@
           <p class="footer__col-title">Contacto</p>
           <div class="footer__contact-item">
             <span>📍</span>
-            <span>Asunción, Paraguay</span>
+            <span>Villarrica, Paraguay</span>
           </div>
           <div class="footer__contact-item">
             <span>📱</span>
-            <a href="https://wa.me/595981000000" class="footer__link" target="_blank" rel="noopener">+595 981 000 000</a>
+            <a href="https://wa.me/595985288964" class="footer__link" target="_blank" rel="noopener">+595 985 288 964</a>
           </div>
           <div class="footer__contact-item">
             <span>✉️</span>
@@ -176,14 +168,14 @@
       </div>
 
       <div class="footer__bottom">
-        <p class="footer__copyright">© 2025 UG Hogar. Todos los derechos reservados.</p>
+        <p class="footer__copyright">© 2026 UG Hogar. Todos los derechos reservados.</p>
       </div>
     </div>
   </footer>
 
   <!-- ===== WhatsApp FAB ===== -->
   <a
-    href="https://wa.me/595981000000?text=Hola,%20me%20gustaría%20conocer%20más%20sobre%20sus%20productos."
+    href="https://wa.me/595985288964?text=Hola,%20me%20gustaría%20conocer%20más%20sobre%20sus%20productos."
     class="whatsapp-fab"
     target="_blank"
     rel="noopener"
@@ -193,8 +185,21 @@
   </a>
 
   <!-- Scripts -->
-  <script src="../assets/js/data.js"></script>
-  <script src="../assets/js/utils.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../assets/js/config/env.js"></script>
+  <script src="../assets/js/services/supabase-client.js"></script>
+  <script src="../assets/js/services/cloudinary-service.js"></script>
+  <script src="../assets/js/services/supabase-service.js"></script>
+  <script src="../assets/js/repositories/category-repository.js"></script>
+  <script src="../assets/js/repositories/product-repository.js"></script>
+  <script src="../assets/js/mappers/category-mapper.js"></script>
+  <script src="../assets/js/mappers/product-mapper.js"></script>
+  <script src="../assets/js/services/category-service.js"></script>
+  <script src="../assets/js/services/product-service.js"></script>
+  <script src="../assets/js/services/catalog-service.js"></script>
+  <script src="../assets/js/utils/formatters.js"></script>
+  <script src="../assets/js/utils/helpers.js"></script>
+  <script src="../assets/js/utils/dom.js"></script>
   <script src="../assets/js/app.js"></script>
 
   <script>

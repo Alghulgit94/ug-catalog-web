@@ -8,9 +8,7 @@ const WHATSAPP_ICON = `<svg viewBox="0 0 24 24" fill="currentColor" width="16" h
 
 /* ---- Shared: render product card ---- */
 function renderProductCard(product) {
-  const image = product.images && product.images[0]
-    ? product.images[0]
-    : "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&q=60";
+  const image = product.coverImage || window.APP_CONFIG.PLACEHOLDER_IMAGE_URL;
 
   const badge = product.featured
     ? `<span class="product-card__badge">Destacado</span>`
@@ -22,6 +20,7 @@ function renderProductCard(product) {
 
   const detailHref = buildDetailHref(product.slug);
   const waLink = generateWhatsAppLink(product.name);
+  const categoryName = product.category ? product.category.name : "";
 
   return `
     <article class="product-card">
@@ -35,7 +34,7 @@ function renderProductCard(product) {
         ${badge}
       </a>
       <div class="product-card__body">
-        <span class="product-card__category">${product.category}</span>
+        <span class="product-card__category">${categoryName}</span>
         <h3 class="product-card__name">${product.name}</h3>
         ${priceHtml}
       </div>
@@ -57,36 +56,58 @@ function buildDetailHref(slug) {
   if (page === "home") {
     return `pages/product.html?slug=${slug}`;
   }
-  // catalog and product pages are already inside /pages/
   return `product.html?slug=${slug}`;
-}
-
-/* ---- Shared: render empty state ---- */
-function renderEmptyState(container, message) {
-  container.innerHTML = `
-    <div class="empty-state">
-      <div class="empty-state__icon">🪑</div>
-      <h3 class="empty-state__title">Sin resultados</h3>
-      <p class="empty-state__description">${message || "No se encontraron productos. Intenta ajustar tu búsqueda o filtros."}</p>
-    </div>
-  `;
 }
 
 /* ============================================
    Homepage
    ============================================ */
-function renderFeaturedProducts() {
+async function renderFeaturedProducts() {
   const container = document.getElementById("featured-products");
   if (!container) return;
 
-  const featured = PRODUCTS.filter(p => p.featured).slice(0, 4);
+  renderLoadingState(container, 4);
+  const products = await window.productService.getFeaturedProducts();
 
-  if (!featured.length) {
-    renderEmptyState(container);
+  if (!products.length) {
+    renderEmptyState(container, "No hay productos destacados.");
     return;
   }
 
-  container.innerHTML = featured.map(renderProductCard).join("");
+  container.innerHTML = products.map(renderProductCard).join("");
+}
+
+async function renderCategoryCards() {
+  const grid = document.getElementById("categories-grid");
+  if (!grid) return;
+
+  const CATEGORY_FALLBACK_IMAGES = {
+    "Living":     "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&q=70",
+    "Comedor":    "https://images.unsplash.com/photo-1617806118233-18e1de247200?w=400&q=70",
+    "Dormitorio": "https://images.unsplash.com/photo-1616594039964-ae9021a400a0?w=400&q=70",
+    "Oficina":    "https://images.unsplash.com/photo-1593642632559-0c6d3fc62b89?w=400&q=70",
+    "Decoración": "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&q=70"
+  };
+
+  const categories = await window.categoryService.getAllCategories();
+
+  const categoryCards = categories.map(function (cat) {
+    const fallback = CATEGORY_FALLBACK_IMAGES[cat.name] || "";
+    const onerror = fallback ? ' onerror="this.onerror=null;this.src=\'' + fallback + '\'"' : "";
+    return '<a href="pages/catalog.html?category=' + encodeURIComponent(cat.name) + '" class="category-card">'
+      + '<img src="' + cat.imageUrl + '" alt="' + cat.name + '" class="category-card__image" loading="lazy"' + onerror + ' />'
+      + '<div class="category-card__overlay"></div>'
+      + '<span class="category-card__label">' + cat.name + '</span>'
+      + '</a>';
+  });
+
+  const destacadosCard = '<a href="pages/catalog.html?category=Destacados" class="category-card">'
+    + '<img src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&q=70" alt="Destacados" class="category-card__image" loading="lazy" />'
+    + '<div class="category-card__overlay"></div>'
+    + '<span class="category-card__label">Destacados</span>'
+    + '</a>';
+
+  grid.innerHTML = categoryCards.join("") + destacadosCard;
 }
 
 /* ============================================
@@ -94,9 +115,12 @@ function renderFeaturedProducts() {
    ============================================ */
 let currentQuery = "";
 let currentCategory = "Todos";
+let allProducts = [];
 
-function initCatalog() {
-  // Read URL params for pre-selected category and search query
+async function initCatalog() {
+  const container = document.getElementById("product-grid");
+  if (!container) return;
+
   const categoryParam = getQueryParam("category");
   if (categoryParam) {
     currentCategory = categoryParam;
@@ -108,10 +132,25 @@ function initCatalog() {
     if (inp) inp.value = qParam;
   }
 
-  // Render grid
-  renderCatalogProducts();
+  renderLoadingState(container, 8);
 
-  // Activate correct filter pill
+  const { products, categories } = await window.catalogService.getCatalogData();
+  allProducts = products;
+
+  // Build filter pills dynamically from visible categories
+  const filterBar = document.querySelector(".filter-bar");
+  if (filterBar) {
+    const pillDefs = [
+      { label: "Todos", value: "Todos" },
+      ...categories.map(c => ({ label: c.name, value: c.name })),
+      { label: "Destacados", value: "Destacados" }
+    ];
+    filterBar.innerHTML = pillDefs.map(({ label, value }) =>
+      `<button class="filter-pill" data-category="${value}">${label}</button>`
+    ).join("");
+  }
+
+  // Activate correct filter pill and bind clicks
   const pills = document.querySelectorAll(".filter-pill");
   pills.forEach(pill => {
     const val = pill.dataset.category;
@@ -136,13 +175,15 @@ function initCatalog() {
       renderCatalogProducts();
     });
   }
+
+  renderCatalogProducts();
 }
 
 function renderCatalogProducts() {
   const container = document.getElementById("product-grid");
   if (!container) return;
 
-  const results = getFilteredProducts(currentQuery, currentCategory);
+  const results = getFilteredProducts(currentQuery, currentCategory, allProducts);
 
   if (!results.length) {
     renderEmptyState(container);
@@ -155,7 +196,7 @@ function renderCatalogProducts() {
 /* ============================================
    Product detail page
    ============================================ */
-function renderProductDetail() {
+async function renderProductDetail() {
   const slug = getQueryParam("slug");
 
   if (!slug) {
@@ -163,7 +204,10 @@ function renderProductDetail() {
     return;
   }
 
-  const product = findProductBySlug(slug);
+  const nameEl = document.getElementById("product-name");
+  if (nameEl) nameEl.textContent = "Cargando...";
+
+  const product = await window.productService.getProductBySlug(slug);
 
   if (!product) {
     showProductError("Producto no encontrado.");
@@ -172,10 +216,9 @@ function renderProductDetail() {
 
   // Category
   const categoryEl = document.getElementById("product-category");
-  if (categoryEl) categoryEl.textContent = product.category;
+  if (categoryEl) categoryEl.textContent = product.category ? product.category.name : "";
 
   // Name
-  const nameEl = document.getElementById("product-name");
   if (nameEl) nameEl.textContent = product.name;
 
   // Price
@@ -194,7 +237,7 @@ function renderProductDetail() {
   if (descEl) descEl.textContent = product.description || product.shortDescription || "";
 
   // Gallery
-  renderProductGallery(product.images || [], product.name);
+  renderProductGallery(product.galleryImages || [], product.name);
 
   // WhatsApp button
   const waLinks = document.querySelectorAll("[data-whatsapp-link]");
@@ -207,7 +250,7 @@ function renderProductDetail() {
   if (breadcrumbName) breadcrumbName.textContent = product.name;
 
   // Page title
-  document.title = `${product.name} — ${BUSINESS_NAME}`;
+  document.title = `${product.name} — ${window.APP_CONFIG.BUSINESS_NAME}`;
 
   // Related products
   renderRelatedProducts(product);
@@ -219,9 +262,8 @@ function renderProductGallery(images, altText) {
 
   if (!mainWrap) return;
 
-  const firstImage = images[0] || "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800&q=80";
+  const firstImage = images[0] || window.APP_CONFIG.PLACEHOLDER_IMAGE_URL;
 
-  // Main image
   mainWrap.innerHTML = `
     <img
       src="${firstImage}"
@@ -231,7 +273,6 @@ function renderProductGallery(images, altText) {
     />
   `;
 
-  // Thumbs — only show if more than one image
   if (!thumbsContainer) return;
 
   if (images.length <= 1) {
@@ -250,7 +291,6 @@ function renderProductGallery(images, altText) {
     </button>
   `).join("");
 
-  // Thumb click handler
   thumbsContainer.querySelectorAll(".product-detail__thumb").forEach(btn => {
     btn.addEventListener("click", () => {
       const idx = parseInt(btn.dataset.index, 10);
@@ -265,14 +305,15 @@ function renderProductGallery(images, altText) {
   });
 }
 
-function renderRelatedProducts(product) {
+async function renderRelatedProducts(product) {
   const container = document.getElementById("related-products");
   if (!container) return;
 
-  const related = getRelatedProducts(product);
+  const related = await window.productService.getRelatedProducts(product);
 
   if (!related.length) {
-    container.closest(".related") && (container.closest(".related").style.display = "none");
+    const section = container.closest(".related");
+    if (section) section.style.display = "none";
     return;
   }
 
@@ -332,6 +373,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (page === "home") {
     renderFeaturedProducts();
+    renderCategoryCards();
   } else if (page === "catalog") {
     initCatalog();
   } else if (page === "product") {
