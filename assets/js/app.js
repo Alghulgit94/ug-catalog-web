@@ -19,7 +19,7 @@ function renderProductCard(product) {
     : "";
 
   const detailHref = buildDetailHref(product.slug);
-  const waLink = generateWhatsAppLink(product.name);
+  const waLink = generateWhatsAppLink(product);
   const categoryName = product.category ? product.category.name : "";
 
   return `
@@ -52,11 +52,7 @@ function renderProductCard(product) {
  * Build the correct href to product.html depending on current page location.
  */
 function buildDetailHref(slug) {
-  const page = document.body.dataset.page;
-  if (page === "home") {
-    return `pages/product.html?slug=${slug}`;
-  }
-  return `product.html?slug=${slug}`;
+  return buildProductPath(slug);
 }
 
 /* ============================================
@@ -242,7 +238,7 @@ async function renderProductDetail() {
   // WhatsApp button
   const waLinks = document.querySelectorAll("[data-whatsapp-link]");
   waLinks.forEach(el => {
-    el.href = generateWhatsAppLink(product.name);
+    el.href = generateWhatsAppLink(product);
   });
 
   // Breadcrumb product name

@@ -29,10 +29,48 @@ function findProductBySlug(slug, products) {
   return products.find(function (p) { return p.slug === slug; });
 }
 
-function generateWhatsAppLink(productName) {
+/**
+ * Relative path to a product detail page, correct from any page depth.
+ */
+function buildProductPath(slug) {
+  const page = document.body.dataset.page;
+  const query = "?slug=" + encodeURIComponent(slug);
+  return page === "home" ? "pages/product.html" + query : "product.html" + query;
+}
+
+/**
+ * Absolute URL to a product detail page. Uses APP_CONFIG.SITE_URL when set,
+ * otherwise resolves against the current page (works on localhost and subpaths).
+ */
+function buildProductUrl(slug) {
+  const base = window.APP_CONFIG.SITE_URL;
+  if (base) {
+    const root = base.charAt(base.length - 1) === "/" ? base : base + "/";
+    return new URL("pages/product.html?slug=" + encodeURIComponent(slug), root).href;
+  }
+  return new URL(buildProductPath(slug), window.location.href).href;
+}
+
+/**
+ * WhatsApp deep link with a prefilled message: product name, price (only when
+ * it is meant to be shown) and a direct link to the product detail page.
+ * Accepts a product object; a bare name string is still tolerated.
+ */
+function generateWhatsAppLink(product) {
   const phone = window.APP_CONFIG.WHATSAPP_PHONE;
-  const message = "Hola, estoy interesado/a en el producto: " + productName;
-  return "https://wa.me/" + phone + "?text=" + encodeURIComponent(message);
+  const isProduct = product && typeof product === "object";
+  const name = isProduct ? product.name : product;
+
+  const lines = ["Hola, estoy interesado/a en este producto:", "", "*" + name + "*"];
+
+  if (isProduct) {
+    if (product.showPrice && product.price) {
+      lines.push("Precio: " + formatPrice(product.price));
+    }
+    lines.push("Ver producto: " + buildProductUrl(product.slug));
+  }
+
+  return "https://wa.me/" + phone + "?text=" + encodeURIComponent(lines.join("\n"));
 }
 
 function searchProducts(query, products) {
