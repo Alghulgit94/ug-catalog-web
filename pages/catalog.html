@@ -17,7 +17,7 @@
     <div class="container">
       <div class="header__inner">
         <a href="../index.html" class="header__logo">
-          <img src="../assets/img/brand/ug-logo.jpg" alt="UG Hogar" class="header__logo-img" loading="eager">
+          <img src="../assets/img/brand/ug-logo.png" alt="UG Hogar" class="header__logo-img" loading="eager">
         </a>
 
         <nav class="header__nav" aria-label="Navegación principal">
@@ -74,6 +74,21 @@
     </div>
   </div>
 
+  <!-- ===== FILTER DRAWER (catalog, mobile) ===== -->
+  <div class="filter-drawer" id="filter-drawer" role="dialog" aria-label="Filtrar por categoría">
+    <div class="filter-drawer__panel">
+      <div class="filter-drawer__header">
+        <h2 class="filter-drawer__title">Filtros</h2>
+        <button class="filter-drawer__close" id="filter-drawer-close" aria-label="Cerrar filtros">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="filter-bar" role="group" aria-label="Filtrar por categoría"></div>
+    </div>
+  </div>
+
   <main>
     <div class="container">
       <!-- Breadcrumb -->
@@ -102,6 +117,16 @@
           aria-label="Buscar en el catálogo"
         />
       </div>
+
+      <!-- Filter toggle (mobile) — opens the filter drawer -->
+      <button class="btn btn--secondary btn--sm filter-toggle-btn" id="filter-toggle-btn" type="button">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <line x1="4" y1="6" x2="20" y2="6"/><circle cx="9" cy="6" r="2" fill="currentColor" stroke="none"/>
+          <line x1="4" y1="12" x2="20" y2="12"/><circle cx="15" cy="12" r="2" fill="currentColor" stroke="none"/>
+          <line x1="4" y1="18" x2="20" y2="18"/><circle cx="11" cy="18" r="2" fill="currentColor" stroke="none"/>
+        </svg>
+        Filtros
+      </button>
 
       <!-- Filter pills — built dynamically from visible categories in app.js -->
       <div class="filter-bar" role="group" aria-label="Filtrar por categoría"></div>

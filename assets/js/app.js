@@ -133,17 +133,20 @@ async function initCatalog() {
   const { products, categories } = await window.catalogService.getCatalogData();
   allProducts = products;
 
-  // Build filter pills dynamically from visible categories
-  const filterBar = document.querySelector(".filter-bar");
-  if (filterBar) {
+  // Build filter pills dynamically from visible categories (desktop bar + drawer bar)
+  const filterBars = document.querySelectorAll(".filter-bar");
+  if (filterBars.length) {
     const pillDefs = [
       { label: "Todos", value: "Todos" },
       ...categories.map(c => ({ label: c.name, value: c.name })),
       { label: "Destacados", value: "Destacados" }
     ];
-    filterBar.innerHTML = pillDefs.map(({ label, value }) =>
+    const pillsHtml = pillDefs.map(({ label, value }) =>
       `<button class="filter-pill" data-category="${value}">${label}</button>`
     ).join("");
+    filterBars.forEach(filterBar => {
+      filterBar.innerHTML = pillsHtml;
+    });
   }
 
   // Activate correct filter pill and bind clicks
@@ -156,10 +159,10 @@ async function initCatalog() {
       pill.classList.remove("filter-pill--active");
     }
     pill.addEventListener("click", () => {
-      pills.forEach(p => p.classList.remove("filter-pill--active"));
-      pill.classList.add("filter-pill--active");
       currentCategory = val;
+      pills.forEach(p => p.classList.toggle("filter-pill--active", p.dataset.category === val));
       renderCatalogProducts();
+      closeFilterDrawer();
     });
   });
 
@@ -360,12 +363,42 @@ function initMobileMenu() {
 }
 
 /* ============================================
+   Filter drawer (catalog, mobile)
+   ============================================ */
+function closeFilterDrawer() {
+  const drawer = document.getElementById("filter-drawer");
+  if (!drawer) return;
+  drawer.classList.remove("filter-drawer--open");
+  document.body.style.overflow = "";
+}
+
+function initFilterDrawer() {
+  const toggleBtn = document.getElementById("filter-toggle-btn");
+  const drawer = document.getElementById("filter-drawer");
+  const drawerClose = document.getElementById("filter-drawer-close");
+
+  if (!toggleBtn || !drawer) return;
+
+  toggleBtn.addEventListener("click", () => {
+    drawer.classList.add("filter-drawer--open");
+    document.body.style.overflow = "hidden";
+  });
+
+  if (drawerClose) drawerClose.addEventListener("click", closeFilterDrawer);
+
+  drawer.addEventListener("click", (e) => {
+    if (e.target === drawer) closeFilterDrawer();
+  });
+}
+
+/* ============================================
    Init
    ============================================ */
 document.addEventListener("DOMContentLoaded", () => {
   const page = document.body.dataset.page;
 
   initMobileMenu();
+  initFilterDrawer();
 
   if (page === "home") {
     renderFeaturedProducts();
